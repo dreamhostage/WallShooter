@@ -16,7 +16,7 @@ using namespace sf;
 
 int main(int argc, char* argv[])
 {
-    // Render settings
+    // Render variables
     std::unique_ptr<RenderWindow> Window;
     View View;
     Vector2f ViewCenter;
@@ -24,6 +24,21 @@ int main(int argc, char* argv[])
     RenderSettings.antialiasingLevel = 8;
     const unsigned int ScreenHeight = VideoMode::getDesktopMode().height;
     const unsigned int ScreenWidth = VideoMode::getDesktopMode().width;
+
+    // FPS variables
+    float CurrentFPS;
+    Clock Clock = sf::Clock::Clock();
+    Time PreviousTime = Clock.getElapsedTime();
+    Time CurrentTime;
+    Text FPSText;
+    Font Font;
+    const Int32 FPSChangingTimeMls = 500;
+    Int32 LastFPSChangingTime = 0;
+    Int32 CurrentMlsTime = 0;
+    FPSText.setCharacterSize(40);
+    Font.loadFromFile("Images/18949.ttf");
+    FPSText.setFont(Font);
+    FPSText.setPosition(ScreenWidth - 200, 50);
 
     // Sprites
     Sprite CursorSprite;
@@ -87,6 +102,7 @@ int main(int argc, char* argv[])
         Window->draw(ScreenSprite);
         Window->draw(CursorSprite);
         Window->draw(ShipSprite);
+        Window->draw(FPSText);
         Window->display();
         Window->clear();
 
@@ -96,6 +112,27 @@ int main(int argc, char* argv[])
         float ShipRotation = (atan2(DirectionVector.y, DirectionVector.x)) * 180 / M_PI;
         ShipSprite.setRotation(ShipRotation);
         CursorSprite.setPosition(Window->mapPixelToCoords(Mouse::getPosition(*Window)));
+
+        // FPS calculation
+        CurrentTime = Clock.getElapsedTime();
+        CurrentFPS = 1.0f / (CurrentTime.asSeconds() - PreviousTime.asSeconds());
+        PreviousTime = CurrentTime;
+
+        CurrentMlsTime = CurrentTime.asMilliseconds();
+        if (CurrentMlsTime - LastFPSChangingTime > FPSChangingTimeMls)
+        {
+            LastFPSChangingTime = CurrentTime.asMilliseconds();
+            FPSText.setString("FPS: " + std::to_string((int)CurrentFPS));
+
+            if (CurrentFPS >= 90)
+            {
+                FPSText.setFillColor(Color::Green);
+            }
+            else
+            {
+                FPSText.setFillColor(Color::Red);
+            }
+        }
     }
 
     return 0;
