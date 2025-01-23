@@ -40,6 +40,15 @@ FrameworkClass::FrameworkClass()
     Font.loadFromFile("Images/18949.ttf");
     FPSText.setFont(Font);
     FPSText.setPosition(ScreenWidth - 200, 50);
+
+    // Bullet manager initialization
+    BulletManagerPtr = std::make_unique<BulletManager>(this);
+
+    // BulletsCount text settings
+    BulletsCountText.setCharacterSize(40);
+    BulletsCountText.setFont(Font);
+    BulletsCountText.setPosition(200, 50);
+    FPSText.setFillColor(Color::White);
 }
 
 void FrameworkClass::Run()
@@ -47,6 +56,7 @@ void FrameworkClass::Run()
     while (Window->isOpen())
     {
         Event event;
+        MousePosition = Window->mapPixelToCoords(Mouse::getPosition(*Window));
 
         while (Window->pollEvent(event))
         {
@@ -61,16 +71,23 @@ void FrameworkClass::Run()
             exit(0);
         }
 
+        if (Mouse::isButtonPressed(Mouse::Left)) 
+        {
+            // MousePosition
+            BulletManagerPtr->Fire(ShipSprite.getPosition(), MousePosition - ShipSprite.getPosition(), 15, 0, 0);
+        }
+
         // Render block
         Window->draw(ScreenSprite);
         Window->draw(CursorSprite);
         Window->draw(ShipSprite);
         Window->draw(FPSText);
+        Window->draw(BulletsCountText);
+        BulletManagerPtr->Update(0);
         Window->display();
         Window->clear();
 
         // Calculating Ship rotation
-        MousePosition = Window->mapPixelToCoords(Mouse::getPosition(*Window));
         Vector2f DirectionVector = ShipSprite.getPosition() - MousePosition;
         float ShipRotation = (atan2(DirectionVector.y, DirectionVector.x)) * 180 / M_PI;
         ShipSprite.setRotation(ShipRotation);
@@ -100,5 +117,8 @@ void FrameworkClass::Run()
                 FPSText.setFillColor(Color::Green);
             }
         }
+
+        // Bullets size updating
+        BulletsCountText.setString("Bullets: " + std::to_string(BulletManagerPtr->GetBulletsCount()));
     }
 }

@@ -3,6 +3,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include "BulletManager.h"
 
 #define M_PI 3.14159265358979323846
 using namespace sf;
@@ -10,6 +11,7 @@ using namespace sf;
 
 class FrameworkClass
 {
+    friend class BulletManager;
 
 public:
 
@@ -47,4 +49,10 @@ private:
     Texture ScreenTexture;
     Texture ShipTexture;
     Vector2u TextureSize;
+
+    // Bullet Manager
+    std::unique_ptr<BulletManager> BulletManagerPtr;
+
+    // Other
+    Text BulletsCountText;
 };
