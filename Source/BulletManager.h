@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Framework.h"
+#include <mutex>
 
 #define M_PI 3.14159265358979323846
 class FrameworkClass;
@@ -13,10 +14,10 @@ struct BulletData
 	std::unique_ptr<Sprite> BulletSprite;
 	Vector2f Direction;
 	float Speed;
-	float Time;
-	float LifeTime;
+	Int32 Time;
+	Int32 LifeTime;
 
-	BulletData(Vector2f InPosition, Vector2f InDirection, float InSpeed, float InTime, float InLifeTime)
+	BulletData(Vector2f InPosition, Vector2f InDirection, float InSpeed, Int32 InTime, Int32 InLifeTime)
 	{
 		BulletTexture = std::make_unique<Texture>();
 		BulletSprite = std::make_unique<Sprite>();
@@ -47,10 +48,13 @@ public:
 	void Update(float Time);
 	void Fire(Vector2f Position, Vector2f Direction, float Speed, float Time, float LifeTime);
 
-	int GetBulletsCount() { return BulletsArray.size(); }
+	int GetBulletsCount() { return BulletsRenderArray.size(); }
 
 private:
 
 	FrameworkClass* FrameworkPtr = nullptr;
-	std::vector<std::unique_ptr<BulletData>> BulletsArray;
+	std::vector<std::shared_ptr<BulletData>> BulletsRenderArray;
+	std::vector<std::shared_ptr<BulletData>> BulletsArrayQueue;
+	Int32 LastShootTime = 0;
+	Int32 ShootDiapason = 10;
 };

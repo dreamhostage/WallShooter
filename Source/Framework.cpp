@@ -1,6 +1,7 @@
 #include "Framework.h"
 
 #include <vector>
+#include <thread>
 
 
 FrameworkClass::FrameworkClass()
@@ -71,19 +72,13 @@ void FrameworkClass::Run()
             exit(0);
         }
 
-        if (Mouse::isButtonPressed(Mouse::Left)) 
-        {
-            // MousePosition
-            BulletManagerPtr->Fire(ShipSprite.getPosition(), MousePosition - ShipSprite.getPosition(), 15, 0, 0);
-        }
-
         // Render block
         Window->draw(ScreenSprite);
         Window->draw(CursorSprite);
         Window->draw(ShipSprite);
         Window->draw(FPSText);
         Window->draw(BulletsCountText);
-        BulletManagerPtr->Update(0);
+        BulletManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
         Window->display();
         Window->clear();
 

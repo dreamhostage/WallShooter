@@ -55,4 +55,6 @@ private:
 
     // Other
     Text BulletsCountText;
+    Int32 LastShootTime = 0;
+    Int32 ShootDiapason = 100;
 };
