@@ -10,8 +10,7 @@ using namespace sf;
 
 struct BulletData
 {
-	std::unique_ptr<Texture> BulletTexture;
-	std::unique_ptr<Sprite> BulletSprite;
+	std::unique_ptr<RectangleShape> BulletSprite;
 	Vector2f Direction;
 	float Speed;
 	Int32 Time;
@@ -19,12 +18,9 @@ struct BulletData
 
 	BulletData(Vector2f InPosition, Vector2f InDirection, float InSpeed, Int32 InTime, Int32 InLifeTime)
 	{
-		BulletTexture = std::make_unique<Texture>();
-		BulletSprite = std::make_unique<Sprite>();
-		BulletTexture->loadFromFile("Images/bullet.png");
-		Vector2u TextureSize;
-		TextureSize = BulletTexture->getSize();
-		BulletSprite->setTexture(*BulletTexture);
+		Vector2f TextureSize = Vector2f(10.f, 4.f);
+		BulletSprite = std::make_unique<RectangleShape>(TextureSize);
+		BulletSprite->setFillColor(sf::Color::Yellow);
 		BulletSprite->setOrigin(TextureSize.x / 2, TextureSize.y / 2);
 		BulletSprite->setPosition(InPosition);
 		Direction = InDirection;
@@ -49,12 +45,16 @@ public:
 	void Fire(Vector2f Position, Vector2f Direction, float Speed, float Time, float LifeTime);
 
 	int GetBulletsCount() { return BulletsRenderArray.size(); }
+	void SpawnBulletsCount(int Count);
 
 private:
 
+	std::mutex SpawnMutex;
 	FrameworkClass* FrameworkPtr = nullptr;
 	std::vector<std::shared_ptr<BulletData>> BulletsRenderArray;
 	std::vector<std::shared_ptr<BulletData>> BulletsArrayQueue;
 	Int32 LastShootTime = 0;
 	Int32 ShootDiapason = 10;
+	Int32 LastTestSpawnTime = 0;
+	Int32 TestSpawnDiapason = 1000;
 };

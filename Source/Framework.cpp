@@ -26,7 +26,7 @@ FrameworkClass::FrameworkClass()
     ShipSprite.setPosition(ScreenWidth / 2, ScreenHeight - 100);
 
     // Window & render settings
-    RenderSettings.antialiasingLevel = 8;
+    RenderSettings.antialiasingLevel = 0;
     Window = std::make_unique<RenderWindow>(VideoMode(ScreenWidth, ScreenHeight), "WallShooter", Style::Fullscreen, RenderSettings);
     ViewCenter.x = ScreenWidth / 2;
     ViewCenter.y = ScreenHeight / 2;
@@ -72,13 +72,20 @@ void FrameworkClass::Run()
             exit(0);
         }
 
+        //-------
+        if (Keyboard::isKeyPressed(Keyboard::Num1))
+        {
+            BulletManagerPtr->SpawnBulletsCount(10000);
+        }
+        //-------
+
         // Render block
         Window->draw(ScreenSprite);
         Window->draw(CursorSprite);
         Window->draw(ShipSprite);
+        BulletManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
         Window->draw(FPSText);
         Window->draw(BulletsCountText);
-        BulletManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
         Window->display();
         Window->clear();
 

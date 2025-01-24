@@ -1,5 +1,6 @@
 #include "BulletManager.h"
 #include <iostream>
+#include <random>
 
 
 BulletManager::BulletManager(FrameworkClass* InFrameworkPtr)
@@ -46,7 +47,7 @@ void BulletManager::Update(float Time)
 	Int32 CurrentTime = FrameworkPtr->Clock.getElapsedTime().asMilliseconds();
 
 	// Replacing bullets from queue to BulletsRenderArray
-	if (BulletsArrayQueue.size() > 0)
+	if (BulletsArrayQueue.size() > 0 && SpawnMutex.try_lock())
 	{
 		for (int i = 0; i < BulletsArrayQueue.size(); ++i)
 		{
@@ -54,6 +55,7 @@ void BulletManager::Update(float Time)
 		}
 
 		BulletsArrayQueue.clear();
+		SpawnMutex.unlock();
 	}
 
 	// Performing BulletsRenderArray
@@ -96,4 +98,44 @@ void BulletManager::Update(float Time)
 void BulletManager::Fire(Vector2f Position, Vector2f Direction, float Speed, float Time, float LifeTime)
 {
 	BulletsArrayQueue.push_back(std::make_shared<BulletData>(Position, Direction, Speed, Time, LifeTime));
+}
+
+void BulletManager::SpawnBulletsCount(int Count)
+{
+	Int32 CurrentTime = FrameworkPtr->Clock.getElapsedTime().asMilliseconds();
+
+	if (CurrentTime - LastTestSpawnTime > TestSpawnDiapason)
+	{
+		LastTestSpawnTime = CurrentTime;
+	}
+	else
+	{
+		return;
+	}
+
+	std::thread FireThread([&]()
+		{
+			if (SpawnMutex.try_lock())
+			{
+				std::random_device rd;
+				std::mt19937 gen(rd());
+				Vector2f RandomPosition;
+				Vector2f RandomDirection;
+				std::uniform_int_distribution<> PositionXDistr(0, FrameworkPtr->ScreenWidth);
+				std::uniform_int_distribution<> PositionYDistr(0, FrameworkPtr->ScreenHeight);
+
+				for (int i = 0; i < Count; ++i)
+				{
+					RandomPosition.x = PositionXDistr(gen);
+					RandomPosition.y = PositionYDistr(gen);
+					RandomDirection.x = PositionXDistr(gen);
+					RandomDirection.y = PositionYDistr(gen);
+
+					BulletsArrayQueue.push_back(std::make_shared<BulletData>(RandomPosition, RandomDirection, 15, CurrentTime, 10000));
+				}
+
+				SpawnMutex.unlock();
+			}
+		});
+	FireThread.detach();
 }
