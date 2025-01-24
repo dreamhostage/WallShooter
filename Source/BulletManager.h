@@ -20,7 +20,7 @@ struct BulletData
 	{
 		Vector2f TextureSize = Vector2f(10.f, 4.f);
 		BulletSprite = std::make_unique<RectangleShape>(TextureSize);
-		BulletSprite->setFillColor(sf::Color::Yellow);
+		BulletSprite->setFillColor(sf::Color::Green);
 		BulletSprite->setOrigin(TextureSize.x / 2, TextureSize.y / 2);
 		BulletSprite->setPosition(InPosition);
 		Direction = InDirection;
@@ -57,4 +57,6 @@ private:
 	Int32 ShootDiapason = 10;
 	Int32 LastTestSpawnTime = 0;
 	Int32 TestSpawnDiapason = 1000;
+	Int32 LastUpdatingTime = 0;
+	Int32 UpdatingDiapason = 10;
 };

@@ -24,7 +24,7 @@ BulletManager::BulletManager(FrameworkClass* InFrameworkPtr)
 					if (CurrentTime - LastShootTime > ShootDiapason)
 					{
 						LastShootTime = CurrentTime;
-						Fire(FrameworkPtr->ShipSprite.getPosition(), FrameworkPtr->MousePosition - FrameworkPtr->ShipSprite.getPosition(), 15, FrameworkPtr->Clock.getElapsedTime().asMilliseconds(), 3000);
+						Fire(FrameworkPtr->ShipSprite.getPosition(), FrameworkPtr->MousePosition - FrameworkPtr->ShipSprite.getPosition(), 15, FrameworkPtr->Clock.getElapsedTime().asMilliseconds(), 20000);
 					}
 				}
 			}
@@ -45,6 +45,15 @@ void BulletManager::Update(float Time)
 	}
 
 	Int32 CurrentTime = FrameworkPtr->Clock.getElapsedTime().asMilliseconds();
+
+	if (CurrentTime - LastUpdatingTime > UpdatingDiapason)
+	{
+		LastUpdatingTime = CurrentTime;
+	}
+	else
+	{
+		return;
+	}
 
 	// Replacing bullets from queue to BulletsRenderArray
 	if (BulletsArrayQueue.size() > 0 && SpawnMutex.try_lock())
@@ -92,6 +101,21 @@ void BulletManager::Update(float Time)
 
 		// Draw bullet
 		FrameworkPtr->Window->draw(*BulletsRenderArray[i]->BulletSprite);
+
+		//------------------------------------------------------------------------------------------------------------------------------------------
+		std::vector<RectangleShape*> result;
+		FrameworkPtr->WallManagerPtr->GetNearbyWalls(BulletPosition, 25, result);
+
+		if (result.size())
+		{
+			for (int i = 0; i < result.size(); ++i)
+			{
+				// FrameworkPtr->WallManagerPtr->RemoveWallFromHashGrid(result[i]->getPosition());
+				result[i]->setFillColor(Color::Green);
+			}
+		}
+		//------------------------------------------------------------------------------------------------------------------------------------------
+
 	}
 }
 

@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include "BulletManager.h"
+#include "WallManager.h"
 
 #define M_PI 3.14159265358979323846
 using namespace sf;
@@ -12,6 +13,7 @@ using namespace sf;
 class FrameworkClass
 {
     friend class BulletManager;
+    friend class WallManager;
 
 public:
 
@@ -52,6 +54,9 @@ private:
 
     // Bullet Manager
     std::unique_ptr<BulletManager> BulletManagerPtr;
+
+    // Wall Manager
+    std::unique_ptr<WallManager> WallManagerPtr;
 
     // Other
     Text BulletsCountText;

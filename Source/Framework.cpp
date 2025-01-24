@@ -27,7 +27,7 @@ FrameworkClass::FrameworkClass()
 
     // Window & render settings
     RenderSettings.antialiasingLevel = 0;
-    Window = std::make_unique<RenderWindow>(VideoMode(ScreenWidth, ScreenHeight), "WallShooter", Style::Fullscreen, RenderSettings);
+    Window = std::make_unique<RenderWindow>(VideoMode(ScreenWidth, ScreenHeight), "WallShooter", Style::Default, RenderSettings);
     ViewCenter.x = ScreenWidth / 2;
     ViewCenter.y = ScreenHeight / 2;
     View = Window->getView();
@@ -44,6 +44,9 @@ FrameworkClass::FrameworkClass()
 
     // Bullet manager initialization
     BulletManagerPtr = std::make_unique<BulletManager>(this);
+
+    // Wall manager initialization
+    WallManagerPtr = std::make_unique<WallManager>(this);
 
     // BulletsCount text settings
     BulletsCountText.setCharacterSize(40);
@@ -84,6 +87,7 @@ void FrameworkClass::Run()
         Window->draw(CursorSprite);
         Window->draw(ShipSprite);
         BulletManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
+        WallManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
         Window->draw(FPSText);
         Window->draw(BulletsCountText);
         Window->display();
