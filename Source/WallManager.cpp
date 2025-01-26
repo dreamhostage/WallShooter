@@ -12,7 +12,7 @@ WallManager::WallManager(FrameworkClass* InFrameworkPtr)
 		return;
 	}
 
-	HashGridPanel = HashGrid(5);
+	HashGridPanel = std::make_unique<HashGrid>(5);
 	SpawnWalls(1000, true);
 }
 
@@ -25,7 +25,7 @@ void WallManager::AddWall(Vector2f InPosition)
 {
 	Vector2f TextureSize = Vector2f(50.f, 5.f);
 	WallsRenderArray.push_back(std::make_unique<WallData>(InPosition, WallSize));
-	HashGridPanel.Insert(WallsRenderArray[WallsRenderArray.size() - 1].get());
+	HashGridPanel->Insert(WallsRenderArray[WallsRenderArray.size() - 1].get());
 }
 
 void WallManager::Update(float Time)
@@ -39,7 +39,7 @@ void WallManager::Update(float Time)
 	{
 		if (WallsRenderArray[i]->bDestroyed)
 		{
-			HashGridPanel.removeCell(WallsRenderArray[i]->Rectangle->getPosition());
+			HashGridPanel->RemoveCell(WallsRenderArray[i]->Rectangle->getPosition());
 			std::vector<std::unique_ptr<WallData>>::iterator BulletsArrayIt = WallsRenderArray.begin();
 			WallsRenderArray.erase(BulletsArrayIt + i);
 			continue;
@@ -49,14 +49,14 @@ void WallManager::Update(float Time)
 	}
 }
 
-bool WallManager::CheckWallsCollision(const Vector2f& position, float radius, RectangleShape* BulletRectangle)
+bool WallManager::CheckWallsCollision(float radius, RectangleShape* BulletRectangle)
 {
-	return HashGridPanel.query(position, radius, BulletRectangle);
+	return HashGridPanel->CheckCollision(radius, BulletRectangle);
 }
 
 void WallManager::RemoveWallFromHashGrid(const Vector2f& position)
 {
-	HashGridPanel.removeCell(position);
+	HashGridPanel->RemoveCell(position);
 }
 
 void WallManager::SpawnWalls(int InCount, bool bForceSpawn)
@@ -96,5 +96,5 @@ void WallManager::SpawnWalls(int InCount, bool bForceSpawn)
 void WallManager::ClearAllData()
 {
 	WallsRenderArray.clear();
-	HashGridPanel.ClearData();
+	HashGridPanel->ClearData();
 }

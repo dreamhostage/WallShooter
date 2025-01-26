@@ -149,12 +149,14 @@ xcopy "$(ProjectDir)..\Images" "$(ProjectDir)..\x64\Release\Images" /e /y /i /r<
   <ItemGroup>
     <ClCompile Include="BulletManager.cpp" />
     <ClCompile Include="Framework.cpp" />
+    <ClCompile Include="HashGridTool.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="WallManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BulletManager.h" />
     <ClInclude Include="Framework.h" />
+    <ClInclude Include="HashGridTool.h" />
     <ClInclude Include="WallManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -57,7 +57,7 @@ void BulletManager::Update(float Time)
 		// Check walls collision
 		if (FrameworkPtr->WallManagerPtr->GetWallSize().y < BulletsRenderArray[i]->Speed)
 		{
-			if (FrameworkPtr->WallManagerPtr->CheckWallsCollision(BulletPosition, 25, BulletsRenderArray[i]->BulletSprite.get()))
+			if (FrameworkPtr->WallManagerPtr->CheckWallsCollision(25, BulletsRenderArray[i]->BulletSprite.get()))
 			{
 				CurrentAngle *= -1;
 				BulletsRenderArray[i]->BulletSprite->setRotation(CurrentAngle);

@@ -5,6 +5,7 @@
 #include <SFML/System.hpp>
 #include "BulletManager.h"
 #include "WallManager.h"
+#include "HashGridTool.h"
 
 #define M_PI 3.14159265358979323846
 using namespace sf;
