@@ -6,6 +6,10 @@
 
 FrameworkClass::FrameworkClass()
 {
+    // Screen size settings
+    ScreenHeight = VideoMode::getDesktopMode().height * ScreenScale;
+    ScreenWidth = VideoMode::getDesktopMode().width * ScreenScale;
+
     // Textures & Sprites settings
     CursorTexture.loadFromFile("Images/aim.png");
     ScreenTexture.loadFromFile("Images/screen.png");
@@ -27,20 +31,22 @@ FrameworkClass::FrameworkClass()
 
     // Window & render settings
     RenderSettings.antialiasingLevel = 0;
-    Window = std::make_unique<RenderWindow>(VideoMode(ScreenWidth, ScreenHeight), "WallShooter", Style::Default, RenderSettings);
+    Window = std::make_unique<RenderWindow>(VideoMode(ScreenWidth, ScreenHeight), "WallShooter", Style::Fullscreen, RenderSettings);
     ViewCenter.x = ScreenWidth / 2;
     ViewCenter.y = ScreenHeight / 2;
     View = Window->getView();
     View.setCenter(ViewCenter);
+    View.setSize(Vector2f(ScreenWidth, ScreenHeight));
     Window->setFramerateLimit(90);
     Window->setView(View);
     Window->setMouseCursorVisible(false);
 
     // FPS settings
-    FPSText.setCharacterSize(40);
+    FPSText.setCharacterSize(40 * ScreenScale);
     Font.loadFromFile("Images/18949.ttf");
     FPSText.setFont(Font);
-    FPSText.setPosition(ScreenWidth - 200, 50);
+    FPSText.setString("FPS: XXX");
+    FPSText.setPosition(ScreenWidth - FPSText.getGlobalBounds().width, FPSText.getGlobalBounds().height);
 
     // Bullet manager initialization
     BulletManagerPtr = std::make_unique<BulletManager>(this);
@@ -49,9 +55,17 @@ FrameworkClass::FrameworkClass()
     WallManagerPtr = std::make_unique<WallManager>(this);
 
     // BulletsCount text settings
-    BulletsCountText.setCharacterSize(40);
+    BulletsCountText.setCharacterSize(40 * ScreenScale);
     BulletsCountText.setFont(Font);
-    BulletsCountText.setPosition(200, 50);
+    BulletsCountText.setString("Bullets: X");
+    BulletsCountText.setPosition(100, BulletsCountText.getGlobalBounds().height);
+    FPSText.setFillColor(Color::White);
+
+    // WallsCount text settings
+    WallsCountText.setCharacterSize(40 * ScreenScale);
+    WallsCountText.setFont(Font);
+    WallsCountText.setString("Walls:   X");
+    WallsCountText.setPosition(100, WallsCountText.getGlobalBounds().height * 2.5);
     FPSText.setFillColor(Color::White);
 }
 
@@ -75,21 +89,46 @@ void FrameworkClass::Run()
             exit(0);
         }
 
-        //-------
+        // Test launching keys performing
         if (Keyboard::isKeyPressed(Keyboard::Num1))
+        {
+            if (ScreenScale != 2)
+            {
+                UpdateScaleSettings(2);
+            }
+
+            WallManagerPtr->SpawnWalls(10000);
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Num2))
         {
             BulletManagerPtr->SpawnBulletsCount(10000);
         }
-        //-------
 
-        // Render block
+        if (Keyboard::isKeyPressed(Keyboard::Num3))
+        {
+            if (ScreenScale != 6)
+            {
+                UpdateScaleSettings(6);
+            }
+
+            WallManagerPtr->SpawnWalls(100000);
+        }
+
+        if (Keyboard::isKeyPressed(Keyboard::Num4))
+        {
+            BulletManagerPtr->SpawnBulletsCount(100000);
+        }
+
+        // Display data
         Window->draw(ScreenSprite);
         Window->draw(CursorSprite);
         Window->draw(ShipSprite);
-        BulletManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
         WallManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
+        BulletManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
         Window->draw(FPSText);
         Window->draw(BulletsCountText);
+        Window->draw(WallsCountText);
         Window->display();
         Window->clear();
 
@@ -124,7 +163,39 @@ void FrameworkClass::Run()
             }
         }
 
-        // Bullets size updating
+        // Bullets count text updating
         BulletsCountText.setString("Bullets: " + std::to_string(BulletManagerPtr->GetBulletsCount()));
+        // Walls count text updating
+        WallsCountText.setString("Walls:     " + std::to_string(WallManagerPtr->GetWallsCount()));
     }
+}
+
+void FrameworkClass::UpdateScaleSettings(int InScale)
+{
+    // Screen size settings
+    ScreenScale = InScale;
+    ScreenHeight = VideoMode::getDesktopMode().height * ScreenScale;
+    ScreenWidth = VideoMode::getDesktopMode().width * ScreenScale;
+
+    ScreenSprite.setPosition(ScreenWidth / 2, ScreenHeight / 2);
+    ScreenSprite.setScale(ScreenWidth / ScreenSprite.getLocalBounds().width, ScreenHeight / ScreenSprite.getLocalBounds().height);
+    ShipSprite.setPosition(ScreenWidth / 2, ScreenHeight - 100);
+    Window->create(sf::VideoMode(ScreenWidth, ScreenHeight), "WallShooter", Style::Fullscreen, RenderSettings);
+    Window->setFramerateLimit(90);
+    Window->setMouseCursorVisible(false);
+    ViewCenter.x = ScreenWidth / 2;
+    ViewCenter.y = ScreenHeight / 2;
+    View = Window->getView();
+    View.setCenter(ViewCenter);
+    View.setSize(Vector2f(ScreenWidth, ScreenHeight));
+    Window->setView(View);
+
+    FPSText.setCharacterSize(40 * ScreenScale);
+    FPSText.setPosition(ScreenWidth - FPSText.getGlobalBounds().width, FPSText.getGlobalBounds().height);
+    BulletsCountText.setCharacterSize(40 * ScreenScale);
+    BulletsCountText.setPosition(100, BulletsCountText.getGlobalBounds().height);
+    WallsCountText.setCharacterSize(40 * ScreenScale);
+    WallsCountText.setPosition(100, WallsCountText.getGlobalBounds().height * 2.5);
+
+    BulletManagerPtr->LaunchFirePerformingThread();
 }

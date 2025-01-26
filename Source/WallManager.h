@@ -10,6 +10,20 @@ using namespace sf;
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+struct WallData
+{
+    std::unique_ptr<RectangleShape> Rectangle;
+    bool bDestroyed = false;
+
+    WallData(const Vector2f& InPosition, const Vector2f& WallSize)
+    {
+        Rectangle = std::make_unique<RectangleShape>(WallSize);
+        Rectangle->setPosition(InPosition);
+        Rectangle->setFillColor(Color::Red);
+        Rectangle->setOrigin(WallSize.x / 2, WallSize.y / 2);
+    }
+};
+
 // Hash function for 2D grid cells
 struct Cell 
 {
@@ -35,7 +49,7 @@ class HashGrid
 {
 private:
     float cellSize;
-    std::unordered_map<Cell, std::vector<RectangleShape*>, CellHash> grid;
+    std::unordered_map<Cell, std::vector<WallData*>, CellHash> grid;
 
     // Convert position to grid cell
     Cell getCell(const Vector2f& position) const 
@@ -52,10 +66,10 @@ public:
     HashGrid(float cellSize) : cellSize(cellSize) {}
 
     // Add an object to the grid
-    void Insert(RectangleShape* Rectangle)
+    void Insert(WallData* WallDataPtr)
     {
-        Cell cell = getCell(Rectangle->getPosition());
-        grid[cell].push_back(Rectangle);
+        Cell cell = getCell(WallDataPtr->Rectangle->getPosition());
+        grid[cell].push_back(WallDataPtr);
     }
 
     void removeCell(const Vector2f& position)
@@ -65,11 +79,12 @@ public:
     }
 
     // Get all objects near a position within a given radius
-    void query(const Vector2f& position, float radius, std::vector<RectangleShape*>& result) const
+    bool query(const Vector2f& position, float radius, RectangleShape* BulletRectangle) const
     {
         Cell centerCell = getCell(position);
 
         int range = static_cast<int>(std::ceil(radius / cellSize));
+        bool bWallDestroyed = false;
 
         // Check all neighboring cells in the radius
         for (int dx = -range; dx <= range; ++dx) 
@@ -82,16 +97,29 @@ public:
                 {
                     for (const auto& obj : grid.at(neighborCell)) 
                     {
-                        // Check if the object is within the radius
-                        float distance = std::sqrt(std::pow(obj->getPosition().x - position.x, 2) + std::pow(obj->getPosition().y - position.y, 2));
-                        if (distance <= radius) 
+                        if (obj && obj->Rectangle && !obj->bDestroyed)
                         {
-                            result.push_back(obj);
+                            // Check if the object is within the radius
+                            float distance = std::sqrt(std::pow(obj->Rectangle->getPosition().x - position.x, 2) + std::pow(obj->Rectangle->getPosition().y - position.y, 2));
+                            if (distance <= radius)
+                            {
+                                if (obj->Rectangle->getGlobalBounds().intersects(BulletRectangle->getGlobalBounds()))
+                                {
+                                    obj->bDestroyed = true;
+                                    bWallDestroyed = true;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
+        return bWallDestroyed;
+    }
+
+    void ClearData()
+    {
+        grid.clear();
     }
 };
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -106,14 +134,19 @@ public:
 
 	void AddWall(Vector2f InPosition);
 	void Update(float Time);
-    void SpawnWalls(int Count);
+    void SpawnWalls(int Count, bool bForceSpawn = false);
 	int GetWallsCount() { return WallsRenderArray.size(); }
-    void GetNearbyWalls(const Vector2f& position, float radius, std::vector<RectangleShape*>& result);
+    bool CheckWallsCollision(const Vector2f& position, float radius, RectangleShape* BulletRectangle);
     void RemoveWallFromHashGrid(const Vector2f& position);
+    const Vector2f& GetWallSize() { return WallSize; }
+    void ClearAllData();
 
 private:
 
 	FrameworkClass* FrameworkPtr = nullptr;
-	std::vector<std::unique_ptr<RectangleShape>> WallsRenderArray;
+	std::vector<std::unique_ptr<WallData>> WallsRenderArray;
     HashGrid HashGridPanel;
+    Vector2f WallSize = Vector2f(50.f, 5.f);
+    Int32 LastTestSpawnTime = 0;
+    Int32 TestSpawnDiapason = 1000;
 };

@@ -39,13 +39,15 @@ class BulletManager
 public:
 
 	BulletManager(FrameworkClass* InFrameworkPtr);
-	~BulletManager();
 
 	void Update(float Time);
 	void Fire(Vector2f Position, Vector2f Direction, float Speed, float Time, float LifeTime);
 
 	int GetBulletsCount() { return BulletsRenderArray.size(); }
 	void SpawnBulletsCount(int Count);
+	void LaunchFirePerformingThread();
+
+	void BulletsMapWallReflecting(int CurrentId);
 
 private:
 
@@ -54,9 +56,9 @@ private:
 	std::vector<std::shared_ptr<BulletData>> BulletsRenderArray;
 	std::vector<std::shared_ptr<BulletData>> BulletsArrayQueue;
 	Int32 LastShootTime = 0;
-	Int32 ShootDiapason = 10;
+	Int32 ShootDiapason = 50;
 	Int32 LastTestSpawnTime = 0;
 	Int32 TestSpawnDiapason = 1000;
-	Int32 LastUpdatingTime = 0;
-	Int32 UpdatingDiapason = 10;
+	Vector2f BulletPosition;
+	double CurrentAngle;
 };

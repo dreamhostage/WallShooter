@@ -1,5 +1,6 @@
 #include "WallManager.h"
 #include <random>
+#include <iostream>
 
 
 WallManager::WallManager(FrameworkClass* InFrameworkPtr)
@@ -11,8 +12,8 @@ WallManager::WallManager(FrameworkClass* InFrameworkPtr)
 		return;
 	}
 
-	HashGridPanel = HashGrid(/*FrameworkPtr->ScreenWidth * FrameworkPtr->ScreenHeight*/ 10);
-	SpawnWalls(10000);
+	HashGridPanel = HashGrid(5);
+	SpawnWalls(1000, true);
 }
 
 WallManager::~WallManager()
@@ -23,9 +24,7 @@ WallManager::~WallManager()
 void WallManager::AddWall(Vector2f InPosition)
 {
 	Vector2f TextureSize = Vector2f(50.f, 5.f);
-	WallsRenderArray.push_back(std::make_unique<RectangleShape>(TextureSize));
-	WallsRenderArray[WallsRenderArray.size() - 1]->setFillColor(Color::Red);
-	WallsRenderArray[WallsRenderArray.size() - 1]->setPosition(InPosition);
+	WallsRenderArray.push_back(std::make_unique<WallData>(InPosition, WallSize));
 	HashGridPanel.Insert(WallsRenderArray[WallsRenderArray.size() - 1].get());
 }
 
@@ -38,13 +37,21 @@ void WallManager::Update(float Time)
 
 	for (int i = 0; i < WallsRenderArray.size(); ++i)
 	{
-		FrameworkPtr->Window->draw(*WallsRenderArray[i]);
+		if (WallsRenderArray[i]->bDestroyed)
+		{
+			HashGridPanel.removeCell(WallsRenderArray[i]->Rectangle->getPosition());
+			std::vector<std::unique_ptr<WallData>>::iterator BulletsArrayIt = WallsRenderArray.begin();
+			WallsRenderArray.erase(BulletsArrayIt + i);
+			continue;
+		}
+
+		FrameworkPtr->Window->draw(*WallsRenderArray[i]->Rectangle.get());
 	}
 }
 
-void WallManager::GetNearbyWalls(const Vector2f& position, float radius, std::vector<RectangleShape*>& result)
+bool WallManager::CheckWallsCollision(const Vector2f& position, float radius, RectangleShape* BulletRectangle)
 {
-	HashGridPanel.query(position, radius, result);
+	return HashGridPanel.query(position, radius, BulletRectangle);
 }
 
 void WallManager::RemoveWallFromHashGrid(const Vector2f& position)
@@ -52,19 +59,42 @@ void WallManager::RemoveWallFromHashGrid(const Vector2f& position)
 	HashGridPanel.removeCell(position);
 }
 
-void WallManager::SpawnWalls(int Count)
+void WallManager::SpawnWalls(int InCount, bool bForceSpawn)
 {
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	Vector2f RandomPosition;
-	std::uniform_int_distribution<> PositionXDistr(0, FrameworkPtr->ScreenWidth);
-	std::uniform_int_distribution<> PositionYDistr(0, FrameworkPtr->ScreenHeight);
+	Int32 CurrentTime = FrameworkPtr->Clock.getElapsedTime().asMilliseconds();
 
-	for (int i = 0; i < Count; ++i)
+	if (!bForceSpawn)
 	{
-		RandomPosition.x = PositionXDistr(gen);
-		RandomPosition.y = PositionYDistr(gen);
-
-		AddWall(RandomPosition);
+		if (CurrentTime - LastTestSpawnTime > TestSpawnDiapason)
+		{
+			LastTestSpawnTime = CurrentTime;
+		}
+		else
+		{
+			return;
+		}
 	}
+
+	ClearAllData();
+	int Count = 0;
+	for (int y = WallSize.y; y < FrameworkPtr->ScreenHeight; y += 20)
+	{
+		for (int x = WallSize.x; x < FrameworkPtr->ScreenWidth; x += 60)
+		{
+			if (Count >= InCount)
+			{
+				return;
+			}
+
+			Vector2f Position(x, y);
+			AddWall(Position);
+			++Count;
+		}
+	}
+}
+
+void WallManager::ClearAllData()
+{
+	WallsRenderArray.clear();
+	HashGridPanel.ClearData();
 }

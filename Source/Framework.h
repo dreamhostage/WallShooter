@@ -18,6 +18,7 @@ class FrameworkClass
 public:
 
     FrameworkClass();
+    void UpdateScaleSettings(int InScale);
     void Run();
 
 private:
@@ -28,10 +29,11 @@ private:
     Vector2f ViewCenter;
     ContextSettings RenderSettings;
     Vector2f MousePosition;
-    const unsigned int ScreenHeight = VideoMode::getDesktopMode().height;
-    const unsigned int ScreenWidth = VideoMode::getDesktopMode().width;
+    unsigned int ScreenHeight;
+    unsigned int ScreenWidth;
+    unsigned int ScreenScale = 1;
 
-    // FPS variables
+    // FPS data variables
     float CurrentFPS;
     Clock Clock = sf::Clock::Clock();
     Time PreviousTime = Clock.getElapsedTime();
@@ -60,6 +62,7 @@ private:
 
     // Other
     Text BulletsCountText;
+    Text WallsCountText;
     Int32 LastShootTime = 0;
     Int32 ShootDiapason = 100;
 };

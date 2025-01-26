@@ -13,28 +13,7 @@ BulletManager::BulletManager(FrameworkClass* InFrameworkPtr)
 	}
 
 	// Creating thread for fire performing
-	std::thread FireThread([&]()
-		{
-			while (FrameworkPtr->Window->isOpen())
-			{
-				if (Mouse::isButtonPressed(Mouse::Left))
-				{
-					Int32 CurrentTime = FrameworkPtr->Clock.getElapsedTime().asMilliseconds();
-
-					if (CurrentTime - LastShootTime > ShootDiapason)
-					{
-						LastShootTime = CurrentTime;
-						Fire(FrameworkPtr->ShipSprite.getPosition(), FrameworkPtr->MousePosition - FrameworkPtr->ShipSprite.getPosition(), 15, FrameworkPtr->Clock.getElapsedTime().asMilliseconds(), 20000);
-					}
-				}
-			}
-		});
-	FireThread.detach();
-}
-
-BulletManager::~BulletManager()
-{
-
+	LaunchFirePerformingThread();
 }
 
 void BulletManager::Update(float Time)
@@ -45,15 +24,6 @@ void BulletManager::Update(float Time)
 	}
 
 	Int32 CurrentTime = FrameworkPtr->Clock.getElapsedTime().asMilliseconds();
-
-	if (CurrentTime - LastUpdatingTime > UpdatingDiapason)
-	{
-		LastUpdatingTime = CurrentTime;
-	}
-	else
-	{
-		return;
-	}
 
 	// Replacing bullets from queue to BulletsRenderArray
 	if (BulletsArrayQueue.size() > 0 && SpawnMutex.try_lock())
@@ -70,6 +40,9 @@ void BulletManager::Update(float Time)
 	// Performing BulletsRenderArray
 	for (int i = 0; i < BulletsRenderArray.size(); ++i)
 	{
+		BulletPosition = BulletsRenderArray[i]->BulletSprite->getPosition();
+		CurrentAngle = BulletsRenderArray[i]->BulletSprite->getRotation();
+
 		// Destroy bullet according to life time
 		if (CurrentTime - BulletsRenderArray[i]->Time > BulletsRenderArray[i]->LifeTime)
 		{
@@ -78,44 +51,26 @@ void BulletManager::Update(float Time)
 			continue;
 		}
 
+		// Reflect bullet from the map walls
+		BulletsMapWallReflecting(i);
+
+		// Check walls collision
+		if (FrameworkPtr->WallManagerPtr->GetWallSize().y < BulletsRenderArray[i]->Speed)
+		{
+			if (FrameworkPtr->WallManagerPtr->CheckWallsCollision(BulletPosition, 25, BulletsRenderArray[i]->BulletSprite.get()))
+			{
+				CurrentAngle *= -1;
+				BulletsRenderArray[i]->BulletSprite->setRotation(CurrentAngle);
+			}
+		}
+
 		// Move bullet according to rotation
-		Vector2f BulletPosition = BulletsRenderArray[i]->BulletSprite->getPosition();
-		double CurrentAngle = BulletsRenderArray[i]->BulletSprite->getRotation();
 		BulletPosition.x += BulletsRenderArray[i]->Speed * cos((CurrentAngle)*M_PI / 180);
 		BulletPosition.y += BulletsRenderArray[i]->Speed * sin((CurrentAngle)*M_PI / 180);
-
-		// Reflect bullet from the map walls
-		if (BulletPosition.x > FrameworkPtr->ScreenWidth || BulletPosition.x < 0)
-		{
-			CurrentAngle = 180 - CurrentAngle;
-		}
-		else if (BulletPosition.y > FrameworkPtr->ScreenHeight || BulletPosition.y < 0)
-		{
-			CurrentAngle *= -1;
-		}
-		else
-		{
-			BulletsRenderArray[i]->BulletSprite->setPosition(BulletPosition);
-		}
-		BulletsRenderArray[i]->BulletSprite->setRotation(CurrentAngle);
+		BulletsRenderArray[i]->BulletSprite->setPosition(BulletPosition);
 
 		// Draw bullet
 		FrameworkPtr->Window->draw(*BulletsRenderArray[i]->BulletSprite);
-
-		//------------------------------------------------------------------------------------------------------------------------------------------
-		std::vector<RectangleShape*> result;
-		FrameworkPtr->WallManagerPtr->GetNearbyWalls(BulletPosition, 25, result);
-
-		if (result.size())
-		{
-			for (int i = 0; i < result.size(); ++i)
-			{
-				// FrameworkPtr->WallManagerPtr->RemoveWallFromHashGrid(result[i]->getPosition());
-				result[i]->setFillColor(Color::Green);
-			}
-		}
-		//------------------------------------------------------------------------------------------------------------------------------------------
-
 	}
 }
 
@@ -137,7 +92,7 @@ void BulletManager::SpawnBulletsCount(int Count)
 		return;
 	}
 
-	std::thread FireThread([&]()
+	std::thread FireThread([Count, CurrentTime, this]()
 		{
 			if (SpawnMutex.try_lock())
 			{
@@ -159,6 +114,44 @@ void BulletManager::SpawnBulletsCount(int Count)
 				}
 
 				SpawnMutex.unlock();
+			}
+		});
+	FireThread.detach();
+}
+
+void BulletManager::BulletsMapWallReflecting(int CurrentId)
+{
+	if (BulletPosition.x > FrameworkPtr->ScreenWidth || BulletPosition.x < 0)
+	{
+		CurrentAngle = 180 - CurrentAngle;
+	}
+	else if (BulletPosition.y > FrameworkPtr->ScreenHeight || BulletPosition.y < 0)
+	{
+		CurrentAngle *= -1;
+	}
+	else
+	{
+		BulletsRenderArray[CurrentId]->BulletSprite->setPosition(BulletPosition);
+	}
+	BulletsRenderArray[CurrentId]->BulletSprite->setRotation(CurrentAngle);
+}
+
+void BulletManager::LaunchFirePerformingThread()
+{
+	std::thread FireThread([&]()
+		{
+			while (FrameworkPtr->Window->isOpen())
+			{
+				if (Mouse::isButtonPressed(Mouse::Left))
+				{
+					Int32 CurrentTime = FrameworkPtr->Clock.getElapsedTime().asMilliseconds();
+
+					if (CurrentTime - LastShootTime > ShootDiapason)
+					{
+						LastShootTime = CurrentTime;
+						Fire(FrameworkPtr->ShipSprite.getPosition(), FrameworkPtr->MousePosition - FrameworkPtr->ShipSprite.getPosition(), 15, FrameworkPtr->Clock.getElapsedTime().asMilliseconds(), 3000);
+					}
+				}
 			}
 		});
 	FireThread.detach();
