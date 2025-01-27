@@ -17,7 +17,6 @@ class WallManager
 public:
 
 	WallManager(FrameworkClass* InFrameworkPtr);
-	~WallManager();
 
 	void AddWall(Vector2f InPosition);
 	void Update(float Time);

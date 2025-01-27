@@ -40,6 +40,7 @@ FrameworkClass::FrameworkClass()
     Window->setFramerateLimit(90);
     Window->setView(View);
     Window->setMouseCursorVisible(false);
+    Window->setVerticalSyncEnabled(true);
 
     // FPS settings
     FPSText.setCharacterSize(40 * ScreenScale);
@@ -189,9 +190,10 @@ void FrameworkClass::UpdateScaleSettings(int InScale)
     View.setCenter(ViewCenter);
     View.setSize(Vector2f(ScreenWidth, ScreenHeight));
     Window->setView(View);
+    Window->setVerticalSyncEnabled(true);
 
     FPSText.setCharacterSize(40 * ScreenScale);
-    FPSText.setPosition(ScreenWidth - FPSText.getGlobalBounds().width, FPSText.getGlobalBounds().height);
+    FPSText.setPosition(ScreenWidth - (FPSText.getGlobalBounds().width * 1.1), FPSText.getGlobalBounds().height);
     BulletsCountText.setCharacterSize(40 * ScreenScale);
     BulletsCountText.setPosition(100, BulletsCountText.getGlobalBounds().height);
     WallsCountText.setCharacterSize(40 * ScreenScale);

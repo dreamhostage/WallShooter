@@ -12,13 +12,8 @@ WallManager::WallManager(FrameworkClass* InFrameworkPtr)
 		return;
 	}
 
-	HashGridPanel = std::make_unique<HashGrid>(5);
+	HashGridPanel = std::make_unique<HashGrid>(20);
 	SpawnWalls(1000, true);
-}
-
-WallManager::~WallManager()
-{
-
 }
 
 void WallManager::AddWall(Vector2f InPosition)
