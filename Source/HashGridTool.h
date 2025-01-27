@@ -43,15 +43,17 @@ class HashGrid
 
 public:
 
-    HashGrid(float InCellSize) { CellSize = InCellSize; }
+    HashGrid(float InCellSize, const Vector2f& InWallSize) { CellSize = InCellSize; WallSize = InWallSize; }
     void Insert(WallData* WallDataPtr);
     void RemoveCell(const Vector2f& position);
     int CheckCollision(float radius, RectangleShape* BulletRectangle) const;
     void ClearData();
+    int GetGridObjectsCount() { return Grid.size(); }
 
 private:
 
     float CellSize;
+    Vector2f WallSize;
     std::unordered_map<Cell, std::vector<WallData*>, CellHash> Grid;
     Cell GetCell(const Vector2f& position) const;
 };

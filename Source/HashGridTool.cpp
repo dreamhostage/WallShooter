@@ -5,8 +5,7 @@ WallData::WallData(const Vector2f& InPosition, const Vector2f& WallSize)
 {
     Rectangle = std::make_unique<RectangleShape>(WallSize);
     Rectangle->setPosition(InPosition);
-    Rectangle->setFillColor(Color::Red);
-    Rectangle->setOrigin(WallSize.x / 2, WallSize.y / 2);
+    Rectangle->setOrigin(0, 0);
 }
 
 // Convert BulletPosition to Grid cell
@@ -22,7 +21,10 @@ Cell HashGrid::GetCell(const Vector2f& BulletPosition) const
 // Add Cell to the hash Grid
 void HashGrid::Insert(WallData* WallDataPtr)
 {
-    Cell Cell = GetCell(WallDataPtr->Rectangle->getPosition());
+    Vector2f Position = WallDataPtr->Rectangle->getPosition();
+    Position.x += WallSize.x / 2.f;
+    Position.y += WallSize.y / 2.f;
+    Cell Cell = GetCell(Position);
     Grid[Cell].push_back(WallDataPtr);
 }
 
@@ -33,7 +35,7 @@ void HashGrid::RemoveCell(const Vector2f& BulletPosition)
     Grid.erase(Cell); // Remove the cell and its contents
 }
 
-// Check nearby Cells for collisions with bullet
+// Check nearby Cells for collisions with bullet. Returns colliding wall id or -1
 int HashGrid::CheckCollision(float Radius, RectangleShape* BulletRectangle) const
 {
     Vector2f BulletPosition = BulletRectangle->getPosition();
@@ -55,7 +57,7 @@ int HashGrid::CheckCollision(float Radius, RectangleShape* BulletRectangle) cons
                     if (NearByWall && NearByWall->Rectangle && !NearByWall->bDestroyed)
                     {
                         // Check if the wall is within the Radius
-                        float Distance = std::sqrt(std::pow(NearByWall->Rectangle->getPosition().x - BulletPosition.x, 2) + std::pow(NearByWall->Rectangle->getPosition().y - BulletPosition.y, 2));
+                        float Distance = std::sqrt(std::pow(NearByWall->Rectangle->getPosition().x + WallSize.x / 2.f - BulletPosition.x, 2) + std::pow(NearByWall->Rectangle->getPosition().y + WallSize.y / 2.f - BulletPosition.y, 2));
                         if (Distance <= Radius)
                         {
                             if (NearByWall->Rectangle->getGlobalBounds().intersects(BulletRectangle->getGlobalBounds()))
