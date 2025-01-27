@@ -12,6 +12,7 @@ struct WallData
 {
     std::unique_ptr<RectangleShape> Rectangle;
     bool bDestroyed = false;
+    int WallId = 0;
 
     WallData(const Vector2f& InPosition, const Vector2f& WallSize);
 };
@@ -45,7 +46,7 @@ public:
     HashGrid(float InCellSize) { CellSize = InCellSize; }
     void Insert(WallData* WallDataPtr);
     void RemoveCell(const Vector2f& position);
-    bool CheckCollision(float radius, RectangleShape* BulletRectangle) const;
+    int CheckCollision(float radius, RectangleShape* BulletRectangle) const;
     void ClearData();
 
 private:

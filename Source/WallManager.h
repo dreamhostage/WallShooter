@@ -27,9 +27,21 @@ public:
     const Vector2f& GetWallSize() { return WallSize; }
     void ClearAllData();
 
+    //---
+    void SpawnWalls2(int Count, bool bForceSpawn = false);
+    void Update2(float Time);
+    //---
+
 private:
 
 	FrameworkClass* FrameworkPtr = nullptr;
+    //---
+    void SetWallInvisible(int InWallId);
+    std::unique_ptr<VertexArray> WallsArray;
+    int WallsCount = 1000;
+    const float WallWidth = 50.0f;
+    const float WallHeight = 5.0f;
+    //---
 	std::vector<std::unique_ptr<WallData>> WallsRenderArray;
     std::unique_ptr<HashGrid> HashGridPanel;
     Vector2f WallSize = Vector2f(50.f, 5.f);

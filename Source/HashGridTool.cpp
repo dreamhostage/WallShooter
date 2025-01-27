@@ -34,7 +34,7 @@ void HashGrid::RemoveCell(const Vector2f& BulletPosition)
 }
 
 // Check nearby Cells for collisions with bullet
-bool HashGrid::CheckCollision(float Radius, RectangleShape* BulletRectangle) const
+int HashGrid::CheckCollision(float Radius, RectangleShape* BulletRectangle) const
 {
     Vector2f BulletPosition = BulletRectangle->getPosition();
     Cell CenterCell = GetCell(BulletPosition);
@@ -61,7 +61,7 @@ bool HashGrid::CheckCollision(float Radius, RectangleShape* BulletRectangle) con
                             if (NearByWall->Rectangle->getGlobalBounds().intersects(BulletRectangle->getGlobalBounds()))
                             {
                                 NearByWall->bDestroyed = true;
-                                return true;
+                                return NearByWall->WallId;
                             }
                         }
                     }
@@ -70,7 +70,7 @@ bool HashGrid::CheckCollision(float Radius, RectangleShape* BulletRectangle) con
         }
     }
 
-    return false;
+    return -1;
 }
 
 void HashGrid::ClearData()

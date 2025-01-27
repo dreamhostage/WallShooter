@@ -113,7 +113,7 @@ void FrameworkClass::Run()
                 UpdateScaleSettings(6);
             }
 
-            WallManagerPtr->SpawnWalls(100000);
+            WallManagerPtr->SpawnWalls2(100000);
         }
 
         if (Keyboard::isKeyPressed(Keyboard::Num4))
@@ -125,7 +125,10 @@ void FrameworkClass::Run()
         Window->draw(ScreenSprite);
         Window->draw(CursorSprite);
         Window->draw(ShipSprite);
-        WallManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
+        // WallManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
+        //---
+        WallManagerPtr->Update2(Clock.getElapsedTime().asMilliseconds());
+        //---
         BulletManagerPtr->Update(Clock.getElapsedTime().asMilliseconds());
         Window->draw(FPSText);
         Window->draw(BulletsCountText);
